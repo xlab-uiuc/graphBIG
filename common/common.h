@@ -21,6 +21,8 @@
 #include <map>
 #include <tr1/unordered_map>
 #include <set>
+#include <cassert>
+
 
 
 
@@ -74,6 +76,8 @@ public:
         add_arg("dataset", "../../dataset/small", "path of dataset files");
         add_arg("separator", "|,", "separators of csv dataset files");
         add_arg("threadnum", "1", "thread number");
+        add_arg("perf_ctrl_fifo", "", "performance counter control fifo");
+        add_arg("perf_ack_fifo", "", "performance counter control fifo");
         add_arg("help", "0", "print help info", false);
 #ifdef SIM
         add_arg("beginiter","0","sim begin iteration #");
@@ -330,5 +334,37 @@ public:
     }
 };
 
+class perf_ctl_fifo
+{
+public:
+    perf_ctl_fifo(const std::string &ctl_fifo_path,
+                const std::string ack_fifo_path)
+      : ctl_fifo(ctl_fifo_path), ack_fifo(ack_fifo_path) {}
+
+  void enable() {
+        if (ctl_fifo.is_open()){
+            ctl_fifo << "enable\n";;
+        }
+        if (ack_fifo.is_open()){
+            std::string ack;
+            ack_fifo >> ack;
+            assert(ack == "ack\n");
+        }
+    }
+
+    void disable(){
+        if (ctl_fifo.is_open()){
+            ctl_fifo << "disable\n";;
+        }
+        if (ack_fifo.is_open()){
+            std::string ack;
+            ack_fifo >> ack;
+            assert(ack == "ack\n");
+        }
+    }
+private:
+    std::ofstream ctl_fifo;
+    std::ifstream ack_fifo;
+};
 
 #endif
