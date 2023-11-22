@@ -338,28 +338,31 @@ class perf_ctl_fifo
 {
 public:
     perf_ctl_fifo(const std::string &ctl_fifo_path,
-                const std::string ack_fifo_path)
+                const std::string & ack_fifo_path)
       : ctl_fifo(ctl_fifo_path), ack_fifo(ack_fifo_path) {}
 
   void enable() {
         if (ctl_fifo.is_open()){
-            ctl_fifo << "enable\n";;
+            ctl_fifo << "enable" << std::endl;
         }
         if (ack_fifo.is_open()){
+            // this '\0' is important, otherwise getline will leave '\0' in the stream
             std::string ack;
-            ack_fifo >> ack;
-            assert(ack == "ack\n");
+            getline(ack_fifo, ack, '\0');
+
+            assert(strcmp(ack.c_str(), "ack\n") == 0);
         }
     }
 
     void disable(){
         if (ctl_fifo.is_open()){
-            ctl_fifo << "disable\n";;
+            ctl_fifo << "disable" << std::endl;
         }
         if (ack_fifo.is_open()){
             std::string ack;
-            ack_fifo >> ack;
-            assert(ack == "ack\n");
+            getline(ack_fifo, ack, '\0');
+
+            assert(strcmp(ack.c_str(), "ack\n") == 0);
         }
     }
 private:
