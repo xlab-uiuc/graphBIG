@@ -186,6 +186,11 @@ int main(int argc, char * argv[])
     arg.get_value("beginiter",beginiter);
     arg.get_value("enditer",enditer);
 #endif
+    string perf_fifo_path;
+    string perf_ack_fifo_path;
+    arg.get_value("perf_ctrl_fifo", perf_fifo_path);
+    arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
+    perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
 
     double t1, t2;
     graph_t graph;
@@ -223,12 +228,13 @@ int main(int argc, char * argv[])
     {
         // Degree Centrality
         t1 = timer::get_usec();
-        
+        ctl.enable();
         if (threadnum==1)
             dc(graph, perf, i);
         else
             parallel_dc(graph, threadnum, perf_multi, i);
 
+        ctl.disable();
         t2 = timer::get_usec();
         elapse_time += t2-t1;
         if ((i+1)<run_num) reset_graph(graph);

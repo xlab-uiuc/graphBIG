@@ -205,6 +205,12 @@ int main(int argc, char * argv[])
     size_t threadnum, maxiter;
     arg.get_value("threadnum",threadnum);
     arg.get_value("maxiter",maxiter);
+
+    string perf_fifo_path;
+    string perf_ack_fifo_path;
+    arg.get_value("perf_ctrl_fifo", perf_fifo_path);
+    arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
+    perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
 #ifdef SIM
     arg.get_value("beginiter",beginiter);
     arg.get_value("enditer",enditer);
@@ -255,9 +261,9 @@ int main(int argc, char * argv[])
 
         // Degree Centrality
         t1 = timer::get_usec();
-        
+        ctl.enable();
         parallel_pagerank(graph, threadnum, damp, quad, maxiter, perf_multi, i);
-
+        ctl.disable();
         t2 = timer::get_usec();
         elapse_time += t2-t1;
     }

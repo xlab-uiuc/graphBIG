@@ -256,6 +256,13 @@ int main(int argc, char * argv[])
 
     size_t threadnum;
     arg.get_value("threadnum",threadnum);
+
+    string perf_fifo_path;
+    string perf_ack_fifo_path;
+    arg.get_value("perf_ctrl_fifo", perf_fifo_path);
+    arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
+    perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
+    
 #ifdef SIM
     arg.get_value("beginiter",beginiter);
     arg.get_value("enditer",enditer);
@@ -299,12 +306,14 @@ int main(int argc, char * argv[])
     {
         global_label=0;
         t1 = timer::get_usec();
+        ctl.enable();
 
         if (threadnum == 1)
             component_num = connected_component(graph, perf, i);
         else
             component_num = parallel_cc(graph, threadnum, perf_multi, i);
 
+        ctl.disable();
         t2 = timer::get_usec();
         elapse_time += t2-t1;
         if ((i+1)<run_num) reset_graph(graph);
