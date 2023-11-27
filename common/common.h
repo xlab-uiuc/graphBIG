@@ -352,9 +352,11 @@ public:
 
             assert(strcmp(ack.c_str(), "ack\n") == 0);
         }
+        __asm__ volatile ("xchgq %r10, %r10");
     }
 
     void disable(){
+        __asm__ volatile ("xchgq %r11, %r11");
         if (ctl_fifo.is_open()){
             ctl_fifo << "disable" << std::endl;
         }
