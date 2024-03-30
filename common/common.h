@@ -23,6 +23,7 @@
 #include <set>
 #include <cassert>
 
+#include <sys/syscall.h>
 
 
 
@@ -334,6 +335,7 @@ public:
     }
 };
 
+#define SYS_show_pgtable 600
 class perf_ctl_fifo
 {
 public:
@@ -342,6 +344,9 @@ public:
       : ctl_fifo(ctl_fifo_path), ack_fifo(ack_fifo_path) {}
 
   void enable() {
+        
+        long res = syscall(SYS_show_pgtable);
+        std::cout << "System call returned " << res << std::endl;
         if (ctl_fifo.is_open()){
             ctl_fifo << "enable" << std::endl;
         }
@@ -352,6 +357,7 @@ public:
 
             assert(strcmp(ack.c_str(), "ack\n") == 0);
         }
+
         __asm__ volatile ("xchgq %r10, %r10");
     }
 
