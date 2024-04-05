@@ -79,6 +79,10 @@ public:
         add_arg("threadnum", "1", "thread number");
         add_arg("perf_ctrl_fifo", "", "performance counter control fifo");
         add_arg("perf_ack_fifo", "", "performance counter control fifo");
+        add_arg("record_stage", "1",
+                "0 for not recording, 1 for running phase, 2 for loading, 3 "
+                "for both (supported by perf but not yet QEMU). Default 1");
+
         add_arg("help", "0", "print help info", false);
 #ifdef SIM
         add_arg("beginiter","0","sim begin iteration #");
@@ -336,6 +340,10 @@ public:
 };
 
 #define SYS_show_pgtable 600
+
+#define RECORD_RUNNING 1
+#define RECORD_LOADING 2
+
 class perf_ctl_fifo
 {
 public:
@@ -363,6 +371,8 @@ public:
 
     void disable(){
         __asm__ volatile ("xchgq %r11, %r11");
+        long res = syscall(SYS_show_pgtable);
+        std::cout << "System call returned " << res << std::endl;
         if (ctl_fifo.is_open()){
             ctl_fifo << "disable" << std::endl;
         }

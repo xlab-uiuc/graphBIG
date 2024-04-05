@@ -165,16 +165,21 @@ int main(int argc, char * argv[])
     size_t root;
     arg.get_value("root",root);
 
+int record_stage;
     string perf_fifo_path;
     string perf_ack_fifo_path;
     arg.get_value("perf_ctrl_fifo", perf_fifo_path);
     arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
+    arg.get_value("record_stage", record_stage);
     perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
 
     double t1, t2;
 
     graph_t graph;
     cout<<"loading data... \n";
+    if (record_stage & RECORD_LOADING){
+        ctl.enable();
+    }
 
     t1 = timer::get_usec();
     string vfile = path + "/vertex.csv";
@@ -192,6 +197,11 @@ int main(int argc, char * argv[])
     
     size_t vertex_num = graph.num_vertices();
     size_t edge_num = graph.num_edges();
+
+    if (record_stage & RECORD_LOADING){
+        ctl.disable();
+    }
+
     t2 = timer::get_usec();
 
     cout<<"== "<<vertex_num<<" vertices  "<<edge_num<<" edges\n";
@@ -215,9 +225,16 @@ int main(int argc, char * argv[])
         vis.black_access=0;
 
         t1 = timer::get_usec();
-        ctl.enable();
+
+        if (record_stage & RECORD_RUNNING){
+            ctl.enable();
+        }
+        
         dfs(graph, root, vis, perf, i);
-        ctl.disable();
+        
+        if (record_stage & RECORD_RUNNING){
+            ctl.disable();
+        }
         t2 = timer::get_usec();
         elapse_time += t2-t1;
         if ((i+1)<run_num) reset_graph(graph);

@@ -271,15 +271,21 @@ int main(int argc, char * argv[])
     arg.get_value("root",root);
     arg.get_value("threadnum",threadnum);
 
+    int record_stage;
     string perf_fifo_path;
     string perf_ack_fifo_path;
     arg.get_value("perf_ctrl_fifo", perf_fifo_path);
     arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
+    arg.get_value("record_stage", record_stage);
     perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
 
     graph_t graph;
     cout<<"loading data... \n";
 
+    if (record_stage & RECORD_LOADING){
+        ctl.enable();
+    }
+    
     t1 = timer::get_usec();
     string vfile = path + "/vertex.csv";
     string efile = path + "/edge.csv";
@@ -296,6 +302,11 @@ int main(int argc, char * argv[])
 
     size_t vertex_num = graph.num_vertices();
     size_t edge_num = graph.num_edges();
+    
+    if (record_stage & RECORD_LOADING){
+        ctl.disable();
+    }
+
     t2 = timer::get_usec();
     cout<<"== "<<vertex_num<<" vertices  "<<edge_num<<" edges\n";
 #ifndef ENABLE_VERIFY
@@ -322,13 +333,19 @@ int main(int argc, char * argv[])
     for (unsigned i=0;i<run_num;i++)
     {
         t1 = timer::get_usec();
-        ctl.enable();
+        if (record_stage & RECORD_RUNNING){
+            ctl.enable();
+        }
 
         if (threadnum==1)
             sssp(graph, root, perf, i);
         else
             parallel_sssp(graph, root, threadnum, perf_multi, i);
-        ctl.disable();
+        
+        if (record_stage & RECORD_RUNNING){
+            ctl.disable();
+        }
+
         t2 = timer::get_usec();
         elapse_time += t2-t1;
         if ((i+1)<run_num) reset_graph(graph);
