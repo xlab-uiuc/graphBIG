@@ -197,7 +197,7 @@ int main(int argc, char * argv[])
     double t1, t2;
     graph_t graph;
     cout<<"loading data... \n";
-    if (record_stage & RECORD_LOADING){
+    if (record_stage == RECORD_LOADING){
         ctl.enable();
     }
     t1 = timer::get_usec();
@@ -207,7 +207,7 @@ int main(int argc, char * argv[])
 #ifndef EDGES_ONLY
     if (graph.load_csv_vertices(vfile, true, separator, 0) == -1)
         return -1;
-    if (graph.load_csv_edges(efile, true, separator, 0, 1) == -1) 
+    if (graph.load_csv_edges(efile, true, separator, 0, 1, false, NULL, -1, record_stage, &ctl) == -1) 
         return -1;
 #else
     if (graph.load_csv_edges(efile, true, separator, 0, 1) == -1)
@@ -217,7 +217,7 @@ int main(int argc, char * argv[])
     size_t vertex_num = graph.num_vertices();
     size_t edge_num = graph.num_edges();
 
-    if (record_stage & RECORD_LOADING){
+    if (record_stage == RECORD_LOADING || record_stage == RECORD_LOADING_END){
         ctl.disable();
     }
     t2 = timer::get_usec();
@@ -237,7 +237,7 @@ int main(int argc, char * argv[])
     {
         // Degree Centrality
         t1 = timer::get_usec();
-        if (record_stage & RECORD_RUNNING){
+        if (record_stage == RECORD_RUNNING){
             ctl.enable();
         }
         
@@ -246,7 +246,7 @@ int main(int argc, char * argv[])
         else
             parallel_dc(graph, threadnum, perf_multi, i);
 
-        if (record_stage & RECORD_RUNNING){
+        if (record_stage == RECORD_RUNNING){
             ctl.disable();
         }
         t2 = timer::get_usec();

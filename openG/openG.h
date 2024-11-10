@@ -15,6 +15,7 @@
 #include "openG_storage.h"
 #include "openG_property.h"
 #include "openG_graph.h"
+#include "common.h"
 
 namespace openG
 {
@@ -193,8 +194,18 @@ public:
     */
     //===================================================================//
     long int load_csv_edges(std::string filename, bool has_header, std::string separators,
-                            size_t srcpos, size_t destpos, bool dag_check=false, bool * loop_ctrl=NULL, int weightpos=-1)
+                            size_t srcpos, size_t destpos, bool dag_check=false, bool * loop_ctrl=NULL, int weightpos=-1, int record_stage=-1, perf_ctl_fifo *ctl=NULL)
     {
+        // count number of lines if we are recording the end part of the loading stage 
+        int total_lines = 0;
+        if (record_stage == RECORD_LOADING_END) {
+            // get number of lines in csv file 
+            std::ifstream cntFile(filename.c_str());
+            std::string cntLine; 
+            while (getline(cntFile, cntLine))
+                ++total_lines;
+        }
+
         std::ifstream file(filename.c_str());
         if (!file.is_open())
         {
@@ -245,6 +256,10 @@ public:
         while (file.good())
         {
             line_num++;
+
+            if (record_stage == RECORD_LOADING_END && line_num == (size_t)(19 * (total_lines/20))) {
+                ctl->enable(); 
+            }
 
             if (loop_ctrl!=NULL && (*loop_ctrl)==false) break;
 

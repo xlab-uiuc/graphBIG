@@ -343,6 +343,7 @@ public:
 
 #define RECORD_RUNNING 1
 #define RECORD_LOADING 2
+#define RECORD_LOADING_END 3
 
 class perf_ctl_fifo
 {
