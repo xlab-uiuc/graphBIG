@@ -172,12 +172,13 @@ int record_stage;
     arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
     arg.get_value("record_stage", record_stage);
     perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
+    cout<<"record_stage: "<<record_stage<<"\n";
 
     double t1, t2;
 
     graph_t graph;
     cout<<"loading data... \n";
-    if (record_stage & RECORD_LOADING){
+    if (record_stage == RECORD_LOADING){
         ctl.enable();
     }
 
@@ -188,7 +189,7 @@ int record_stage;
 #ifndef EDGES_ONLY
     if (graph.load_csv_vertices(vfile, true, separator, 0) == -1)
         return -1;
-    if (graph.load_csv_edges(efile, true, separator, 0, 1) == -1) 
+    if (graph.load_csv_edges(efile, true, separator, 0, 1, false, NULL, -1, record_stage, &ctl) == -1) 
         return -1;
 #else
     if (graph.load_csv_edges(efile, true, separator, 0, 1) == -1)
@@ -198,7 +199,7 @@ int record_stage;
     size_t vertex_num = graph.num_vertices();
     size_t edge_num = graph.num_edges();
 
-    if (record_stage & RECORD_LOADING){
+    if (record_stage == RECORD_LOADING || record_stage == RECORD_LOADING_END){
         ctl.disable();
     }
 
@@ -226,13 +227,13 @@ int record_stage;
 
         t1 = timer::get_usec();
 
-        if (record_stage & RECORD_RUNNING){
+        if (record_stage == RECORD_RUNNING){
             ctl.enable();
         }
         
         dfs(graph, root, vis, perf, i);
         
-        if (record_stage & RECORD_RUNNING){
+        if (record_stage == RECORD_RUNNING){
             ctl.disable();
         }
         t2 = timer::get_usec();

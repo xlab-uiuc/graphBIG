@@ -193,6 +193,7 @@ int main(int argc, char * argv[])
     arg.get_value("perf_ack_fifo", perf_ack_fifo_path);
     arg.get_value("record_stage", record_stage);
     perf_ctl_fifo ctl(perf_fifo_path, perf_ack_fifo_path);
+    cout<<"record_stage: "<<record_stage<<"\n";
 
     double t1, t2;
     graph_t graph;
